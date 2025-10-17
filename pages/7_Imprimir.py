@@ -383,21 +383,50 @@ if not info:
 items = _fetch_lote_agrupado(lote_num)
 pdf_bytes = build_pdf(info, items)
 
+# Botão para baixar o PDF
 st.download_button("⬇️ Baixar PDF", data=pdf_bytes, file_name=f"Lote_{lote_num}.pdf", mime="application/pdf")
 
-# Mostrar inline (sem abrir nova aba)
-b64 = base64.b64encode(pdf_bytes).decode("utf-8")
-st.markdown(
-    f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="820" style="border:none;"></iframe>',
-    unsafe_allow_html=True
-)
+# --- exibir o PDF em HTML usando blob: (mais compatível que data:) ---
+import base64
+import streamlit.components.v1 as components
 
-# Botão voltar (opcional)
-col1, _ = st.columns([1,6])
-with col1:
-    if st.button("⬅️ Voltar"):
-        try:
-            st.query_params.clear()
-        except Exception:
-            st.experimental_set_query_params()
-        st.switch_page("pages/2_Lote_Pronto.py")
+b64 = base64.b64encode(pdf_bytes).decode("utf-8")
+
+components.html(
+    f"""
+    <div id="wrap" style="width:100%;height:820px;">
+      <iframe id="pdfFrame" style="border:none;width:100%;height:100%;"></iframe>
+    </div>
+    <script>
+      (function() {{
+        try {{
+          const b64 = "{b64}";
+          const byteChars = atob(b64);
+          const byteNums = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+          const byteArray = new Uint8Array(byteNums);
+          const blob = new Blob([byteArray], {{ type: "application/pdf" }});
+          const url = URL.createObjectURL(blob);
+          const iframe = document.getElementById("pdfFrame");
+          iframe.src = url;
+
+          // opcional: link para abrir em nova aba
+          const link = document.createElement("a");
+          link.href = url;
+          link.textContent = "🔗 Abrir PDF em nova aba";
+          link.target = "_blank";
+          link.style.display = "inline-block";
+          link.style.marginTop = "8px";
+          document.getElementById("wrap").insertAdjacentElement("afterend", link);
+        }} catch (e) {{
+          const el = document.createElement("div");
+          el.textContent = "Falha ao carregar PDF inline. Use o botão de download.";
+          el.style.color = "red";
+          document.getElementById("wrap").appendChild(el);
+          console.error(e);
+        }}
+      }})();
+    </script>
+    """,
+    height=860,
+)
