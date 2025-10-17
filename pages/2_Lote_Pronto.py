@@ -58,7 +58,6 @@ _ensure_schema_lotes_status()
 lotes = _list_lotes()
 pendentes  = sorted([l for l in lotes if l["status"] != "concluido"], key=lambda x: x["numero"])
 concluidos = sorted([l for l in lotes if l["status"] == "concluido"], key=lambda x: x["numero"])
-ordered = pendentes + concluidos
 
 # ----------------- Estilo -----------------
 st.markdown("""
@@ -99,93 +98,77 @@ st.markdown("""
 .badge.pending{ background:#fff7ed; color:var(--amber-600); border-color:#fde2b3;}
 .badge.ok{ background:#ecfdf5; color:var(--green-600); border-color:#b7f0d1;}
 
-/* Botões do Streamlit com largura/altura iguais */
+/* Botões */
 div[data-testid="stButton"] > button{
   width:100% !important;
   white-space:nowrap !important;
   height:42px !important;
   border-radius:12px !important;
 }
-
-/* Link button igual ao stButton */
-div[data-testid="stLinkButton"] > a{
-  width:100% !important;
-  height:42px !important;
-  border-radius:12px !important;
-  white-space:nowrap !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
 # ----------------- UI -----------------
-if not lotes:
-    st.info("Nenhum lote cadastrado ainda.")
-else:
+def _render_grid(items_list):
+    if not items_list:
+        return
     COLS = 4
+    rows = (len(items_list) + COLS - 1) // COLS
+    idx = 0
+    for _ in range(rows):
+        cols = st.columns(COLS)
+        for c in cols:
+            if idx >= len(items_list):
+                break
+            lote = items_list[idx]; idx += 1
 
-    def _render_grid(items_list):
-        # Renderiza uma lista de lotes em grid de COLS colunas
-        if not items_list:
-            return
-        rows = (len(items_list) + COLS - 1) // COLS
-        idx = 0
-        for _ in range(rows):
-            cols = st.columns(COLS)
-            for c in cols:
-                if idx >= len(items_list):
-                    break
-                lote = items_list[idx]; idx += 1
+            numero = lote["numero"]
+            status = lote["status"]
+            itens  = lote["itens"]
+            criado = lote["criado_em"] or ""
 
-                numero = lote["numero"]
-                status = lote["status"]
-                items  = lote["itens"]
-                criado = lote["criado_em"] or ""
+            done = (status == "concluido")
+            badge_text = "☑ Concluído" if done else "☐ Pendente"
+            badge_cls  = "ok" if done else "pending"
+            card_cls   = "card-concluido" if done else "card-pendente"
 
-                done = (status == "concluido")
-                badge_text = "☑ Concluído" if done else "☐ Pendente"
-                badge_cls  = "ok" if done else "pending"
-                card_cls   = "card-concluido" if done else "card-pendente"
-
-                with c:
-                    st.markdown(
-                        f"""
+            with c:
+                st.markdown(
+f"""
 <div class="card-lote {card_cls}">
   <span class="ribbon">{'Concluído' if done else 'Pendente'}</span>
   <div class="title">Lote #{numero}</div>
-  <div class="meta">Itens: <b>{items}</b> • Criado em: {html_lib.escape(criado)}</div>
+  <div class="meta">Itens: <b>{itens}</b> • Criado em: {html_lib.escape(criado)}</div>
   <div style="margin-top:8px;"><span class="badge {badge_cls}">{badge_text}</span></div>
 </div>
-""",
-                        unsafe_allow_html=True
-                    )
+""", unsafe_allow_html=True
+                )
 
-                    # Botões lado a lado, mesmo tamanho
-                    b1, b2 = st.columns([1, 1])
-                    with b1:
-                        toggle_label = "↩️ Reabrir" if done else "✅ Concluir"
-                        if st.button(toggle_label, key=f"toggle_{numero}", use_container_width=True):
-                            _set_lote_status(numero, "pendente" if done else "concluido")
-                            st.rerun()
-                    with b2:
-                        # Navegar para a página de impressão na mesma aba
-                        if st.button("🖨️ Imprimir", key=f"imprimir_{numero}", use_container_width=True):
-                            st.session_state["lote_para_imprimir"] = int(numero)
-                            # troca de página interna (mesma aba)
-                            st.switch_page("pages/7_Imprimir.py")
+                b1, b2 = st.columns([1, 1])
+                with b1:
+                    toggle_label = "↩️ Reabrir" if done else "✅ Concluir"
+                    if st.button(toggle_label, key=f"toggle_{numero}", use_container_width=True):
+                        _set_lote_status(numero, "pendente" if done else "concluido")
+                        st.rerun()
 
-    # Renderizar pendentes primeiro
-    if pendentes:
-        _render_grid(pendentes)
+                with b2:
+                    if st.button("🖨️ Imprimir", key=f"imprimir_{numero}", use_container_width=True):
+                        # passa parâmetro e troca de página na MESMA aba
+                        try:
+                            st.query_params.clear()
+                            st.query_params["lote"] = str(numero)
+                        except Exception:
+                            st.experimental_set_query_params(lote=numero)
+                        st.session_state["lote_para_imprimir"] = int(numero)
+                        st.switch_page("pages/7_Imprimir.py")
 
-    # Separador entre pendentes e concluídos
-    if concluidos:
-        st.divider()
-        st.markdown("**Concluídos**")
-        _render_grid(concluidos)
+if pendentes:
+    _render_grid(pendentes)
 
-# ----------------- Rodapé -----------------
+if concluidos:
+    st.divider()
+    st.markdown("**Concluídos**")
+    _render_grid(concluidos)
+
 st.divider()
 st.write(f"**Resumo:** {len(pendentes)} pendente(s) • {len(concluidos)} concluído(s).")

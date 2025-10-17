@@ -1,4 +1,3 @@
-# pages/7_Imprimir.py
 import re
 import base64
 import sqlite3
@@ -12,13 +11,13 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics  # <-- para medir largura do texto
+from reportlab.pdfbase import pdfmetrics
 
 DB_PATH = "dados.db"
 
 st.set_page_config(page_title="Imprimir Lote", page_icon="🖨️", layout="wide")
 
-# ---------- Faixas alvo ----------
+# ---------- Faixas ---------- 
 FAIXAS = [
     ("0–8",   (0, 8)),
     ("9–12",  (9, 12)),
@@ -28,7 +27,6 @@ FAIXAS = [
     ("31–36", (31, 36)),
     ("36+",   (37, 10_000)),
 ]
-
 POSSIVEIS_COLS_IDADE = [
     "Idade", "Idade (meses)", "Idade_meses", "Meses", "Meses Idade",
     "Idade em meses", "Idade Em Meses"
@@ -39,6 +37,7 @@ def _connect():
     return sqlite3.connect(DB_PATH)
 
 def _qp_lote():
+    # lê ?lote= do URL (API nova e fallback)
     try:
         qp = st.query_params
         v = qp.get("lote")
@@ -48,9 +47,7 @@ def _qp_lote():
         qp = st.experimental_get_query_params()
         return (qp.get("lote") or [None])[0]
 
-
 def _session_lote_fallback():
-    # Se não houver query param, tentar usar session_state definido pela página anterior
     try:
         if "lote_para_imprimir" in st.session_state:
             return str(st.session_state.get("lote_para_imprimir"))
@@ -101,7 +98,6 @@ def _faixa_por_idade(meses) -> str | None:
         if lo <= m <= hi: return label
     return None
 
-# Colunas “M 0 - 8”, “F 9 - 12”, …, “M 36 +”
 R_RANGE = re.compile(r"^(M|F)\s*(\d{1,2})\s*-\s*(\d{1,2})$", re.IGNORECASE)
 R_36P   = re.compile(r"^(M|F)\s*36\s*\+$", re.IGNORECASE)
 
@@ -159,8 +155,8 @@ def _fetch_lote_agrupado(numero: int):
 
     with _connect() as conn:
         rows = conn.execute(sql, (int(numero),)).fetchall()
-        cur_desc = conn.execute(sql.replace("?", str(int(numero))) + " LIMIT 1").description if rows else []
-        colnames = [d[0] for d in cur_desc] if cur_desc else [s.split(' AS ')[-1].strip('"') for s in selects]
+        desc = conn.execute(sql.replace("?", str(int(numero))) + " LIMIT 1").description if rows else []
+        colnames = [d[0] for d in desc] if desc else [s.split(' AS ')[-1].strip('"') for s in selects]
 
     grupos = {}
     def _key(d):
@@ -178,7 +174,7 @@ def _fetch_lote_agrupado(numero: int):
                 "F": {label: 0 for label, _ in FAIXAS},
             }
 
-        for colname, sexo, bounds in faixa_cols:
+        for colname, sexo, bounds in _detectar_cols_por_faixa_sexo(colnames):
             raw = d.get(colname)
             try:
                 val = int(str(raw).strip()) if raw not in (None, "") else 0
@@ -208,11 +204,8 @@ def _fetch_lote_agrupado(numero: int):
     itens.sort(key=lambda x: (_to_int(x["lacre"]), _to_int(x["serie"])))
     return itens
 
-# ---------- util: truncar com reticências ----------
+# ---------- util: truncar ----------
 def truncate_text(text: str, max_width_pt: float, font_name: str = "Helvetica-Oblique", font_size: float = 8.0) -> str:
-    """
-    Corta 'text' e adiciona '…' para caber em 'max_width_pt' pontos na fonte informada.
-    """
     if text is None:
         return ""
     t = str(text)
@@ -220,7 +213,6 @@ def truncate_text(text: str, max_width_pt: float, font_name: str = "Helvetica-Ob
         return t
     ell = "…"
     ell_w = pdfmetrics.stringWidth(ell, font_name, font_size)
-    # binária simples
     lo, hi = 0, len(t)
     while lo < hi:
         mid = (lo + hi) // 2
@@ -239,8 +231,8 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
     doc = SimpleDocTemplate(
         buf,
         pagesize=A4,
-        leftMargin=2 * mm,     # mais à esquerda
-        rightMargin=14 * mm,   # margem direita visível
+        leftMargin=2 * mm,
+        rightMargin=14 * mm,
         topMargin=10 * mm,
         bottomMargin=10 * mm,
         title=f"Lote #{lote_info['numero']}",
@@ -252,10 +244,8 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
 
     story = []
     story.append(Paragraph(f"Lote #{lote_info['numero']}", title))
-    # (linha meta removida)
     story.append(Spacer(1, 6))
 
-    # --- calcular larguras antes para poder truncar nomes ---
     area_util_mm = (doc.pagesize[0] - doc.leftMargin - doc.rightMargin) / mm
     w_serie, w_lacre, w_prop = 24*mm, 18*mm, 62*mm
     remaining = (area_util_mm*mm) - (w_serie + w_lacre + w_prop)
@@ -263,11 +253,9 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
     w_sub = max(7*mm, remaining / num_subcols)
     colWidths = [w_serie, w_lacre, w_prop] + [w_sub] * num_subcols
 
-    # padding aplicado via TableStyle para a coluna de nomes
-    left_pad = right_pad = 3  # em pontos
-    avail_prop_width = w_prop - left_pad - right_pad  # pontos
+    left_pad = right_pad = 3
+    avail_prop_width = w_prop - left_pad - right_pad
 
-    # --- Tabela principal ---
     head_top  = ["", "", ""]
     head_sub  = ["Série", "Lacre", "Proprietário"]
     for label, _ in FAIXAS:
@@ -303,14 +291,11 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
         ("GRID",       (0, 0), (-1, -1), 0.25, colors.HexColor("#cbd5e1")),
         ("VALIGN",     (0, 0), (-1, -1), "MIDDLE"),
         ("ROWBACKGROUNDS", (0,2), (-1,-1), [colors.white, colors.HexColor("#fafafa")]),
-
-        # ajustes da coluna Proprietário (linhas de dados)
-        ("FONTNAME",   (2, 2), (2, -1), "Helvetica-Oblique"),  # itálico
-        ("FONTSIZE",   (2, 2), (2, -1), 8),                    # menor
+        ("FONTNAME",   (2, 2), (2, -1), "Helvetica-Oblique"),
+        ("FONTSIZE",   (2, 2), (2, -1), 8),
         ("LEFTPADDING",(2, 2), (2, -1), left_pad),
         ("RIGHTPADDING",(2, 2), (2, -1), right_pad),
     ]
-    # spans da primeira linha do cabeçalho
     start = 3
     for _label, _ in FAIXAS:
         style_cmds.append(("SPAN", (start, 0), (start+1, 0)))
@@ -321,7 +306,6 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
     story.append(Spacer(1, 6))
     story.append(Paragraph(f"Total de linhas (lacre): <b>{len(items)}</b>", styles["Normal"]))
 
-    # --- GTA de Saída (totais) ---
     tot_M = {label: 0 for label, _ in FAIXAS}
     tot_F = {label: 0 for label, _ in FAIXAS}
     for it in items:
@@ -348,13 +332,11 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
         gta_row += [str(tot_M[label]), str(tot_F[label])]
     gta_row += [str(total_M_geral), str(total_F_geral)]
 
-    gta_data = [gta_top, gta_sub, gta_row]
-
-    area_util_mm = (doc.pagesize[0] - doc.leftMargin - doc.rightMargin) / mm
     num_subcols_gta = len(FAIXAS)*2 + 2
+    area_util_mm = (doc.pagesize[0] - doc.leftMargin - doc.rightMargin) / mm
     w_gta = max(10*mm, (area_util_mm*mm) / num_subcols_gta)
 
-    gta_table = Table(gta_data, colWidths=[w_gta]*num_subcols_gta, hAlign="LEFT", repeatRows=2)
+    gta_table = Table([gta_top, gta_sub, gta_row], colWidths=[w_gta]*num_subcols_gta, hAlign="LEFT", repeatRows=2)
     gta_style = [
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef2ff")),
         ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8fafc")),
@@ -402,5 +384,20 @@ items = _fetch_lote_agrupado(lote_num)
 pdf_bytes = build_pdf(info, items)
 
 st.download_button("⬇️ Baixar PDF", data=pdf_bytes, file_name=f"Lote_{lote_num}.pdf", mime="application/pdf")
+
+# Mostrar inline (sem abrir nova aba)
 b64 = base64.b64encode(pdf_bytes).decode("utf-8")
-st.markdown(f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="820" style="border:none;"></iframe>', unsafe_allow_html=True)
+st.markdown(
+    f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="820" style="border:none;"></iframe>',
+    unsafe_allow_html=True
+)
+
+# Botão voltar (opcional)
+col1, _ = st.columns([1,6])
+with col1:
+    if st.button("⬅️ Voltar"):
+        try:
+            st.query_params.clear()
+        except Exception:
+            st.experimental_set_query_params()
+        st.switch_page("pages/2_Lote_Pronto.py")
