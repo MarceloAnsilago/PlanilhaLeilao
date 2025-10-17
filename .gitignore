@@ -1,0 +1,27 @@
+# venv
+venv/
+.venv/
+ENV/
+env/
+*.egg-info/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
+.streamlit/**/secrets.toml
+
+# Dados locais
+*.db
+dados.db
+
+# Logs / misc
+*.log
