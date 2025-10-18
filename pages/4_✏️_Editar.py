@@ -3,9 +3,9 @@ import pandas as pd
 import sqlite3
 from datetime import datetime, date
 
+# Editar
 st.set_page_config(page_title="Editar", page_icon="✏️", layout="wide")
-st.title("✏️ Editar Registro")
-
+st.title("✏️ Editar")
 # -------------------- Utilidades --------------------
 def _connect():
     return sqlite3.connect("dados.db")

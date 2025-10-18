@@ -5,8 +5,9 @@ import html as html_lib
 import base64
 import streamlit.components.v1 as components
 # ----------------- Config -----------------
-st.set_page_config(page_title="Lote Pronto", page_icon="✅", layout="wide")
-st.title("✅ Lote Pronto")
+st.set_page_config(page_title="Lotes", page_icon="✅", layout="wide")
+st.title("✅ Lotes")
+
 st.caption("Clique em um card para alternar o status do lote. Pendentes aparecem primeiro.")
 
 DB_PATH = "dados.db"

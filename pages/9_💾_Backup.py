@@ -13,7 +13,7 @@ import streamlit as st
 # Config
 # --------------------------------------------------
 st.set_page_config(page_title="Backup", page_icon="💾", layout="wide")
-st.title("💾 Backup de Dados")
+st.title("💾 Backup")
 st.markdown("Faça **download** do banco atual ou **restaure** a partir de um arquivo `.sqlite`/`.db`.")
 
 # Caminhos

@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 
-st.set_page_config(page_title="Planilha", page_icon="📊", layout="wide")
-st.title("📊 Dados Salvos no Banco")
+st.set_page_config(page_title="Planilha", page_icon="📑", layout="wide")
+st.title("📑 Planilha")
 
 def _connect():
     return sqlite3.connect("dados.db")

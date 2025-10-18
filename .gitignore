@@ -3,6 +3,7 @@ venv/
 .venv/
 ENV/
 env/
+comandos.txt
 *.egg-info/
 
 # Python cache

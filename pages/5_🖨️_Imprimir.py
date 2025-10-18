@@ -15,11 +15,15 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 
+
+
+
 # ----------------------------------------------------------------------
 # Config
 # ----------------------------------------------------------------------
 DB_PATH = "dados.db"
-st.set_page_config(page_title="Imprimir Lote", page_icon="🖨️", layout="wide")
+st.set_page_config(page_title="Imprimir", page_icon="🖨️", layout="wide")
+st.title("🖨️ Imprimir")
 
 # ----------------------------------------------------------------------
 # Constantes

@@ -6,8 +6,8 @@ import csv
 import io
 import streamlit as st
 
-st.set_page_config(page_title="Animais fora de lote", page_icon="🐮", layout="wide")
-st.title("🐮 Animais fora de lote")
+st.set_page_config(page_title="Animais Fora", page_icon="🐄", layout="wide")
+st.title("🐄 Animais Fora")
 st.caption("Registros da tabela `animais` que não possuem vínculo em `lote_itens`.")
 
 APP_DIR = Path(__file__).resolve().parent.parent if "__file__" in globals() else Path(".")

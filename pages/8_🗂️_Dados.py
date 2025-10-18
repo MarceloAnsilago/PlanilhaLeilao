@@ -4,8 +4,8 @@ import sqlite3
 from io import BytesIO
 
 
-st.set_page_config(page_title="Dados", page_icon="📁", layout="wide")
-st.title("📁 Importar Dados")
+st.set_page_config(page_title="Dados", page_icon="🗂️", layout="wide")
+st.title("🗂️ Dados")
 
 st.markdown("Carregue um arquivo com os dados do leilão (HTML, Excel, LibreOffice etc.).")
 
