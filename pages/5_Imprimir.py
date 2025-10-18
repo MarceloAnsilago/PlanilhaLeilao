@@ -23,7 +23,7 @@ from reportlab.pdfbase import pdfmetrics
 # ----------------------------------------------------------------------
 DB_PATH = "dados.db"
 st.set_page_config(page_title="Imprimir", page_icon="🖨️", layout="wide")
-st.title("🖨️ Imprimir")
+
 
 # ----------------------------------------------------------------------
 # Constantes
