@@ -1,4 +1,4 @@
-# pages/5_Backup.py
+# pages/9_Backup.py
 from __future__ import annotations
 import os
 import io
@@ -9,11 +9,20 @@ from datetime import datetime
 from pathlib import Path
 import streamlit as st
 
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
+
 # --------------------------------------------------
 # Config
 # --------------------------------------------------
 st.set_page_config(page_title="Backup", page_icon="💾", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
 st.title("💾 Backup")
+st.markdown("Faça **download** do banco atual ou **restaure** a partir de um arquivo `.sqlite`/`.db`.")
+
 st.markdown("Faça **download** do banco atual ou **restaure** a partir de um arquivo `.sqlite`/`.db`.")
 
 # Caminhos

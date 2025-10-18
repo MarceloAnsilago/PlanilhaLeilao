@@ -2,9 +2,15 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 
-st.set_page_config(page_title="Planilha", page_icon="📑", layout="wide")
-st.title("📑 Planilha")
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
 
+st.set_page_config(page_title="Planilha", page_icon="📑", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
+st.title("📑 Planilha")
 def _connect():
     return sqlite3.connect("dados.db")
 

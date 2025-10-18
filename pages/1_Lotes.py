@@ -4,8 +4,16 @@ from datetime import datetime
 import html as html_lib
 import base64
 import streamlit.components.v1 as components
+
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
+
 # ----------------- Config -----------------
 st.set_page_config(page_title="Lotes", page_icon="✅", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
 st.title("✅ Lotes")
 
 st.caption("Clique em um card para alternar o status do lote. Pendentes aparecem primeiro.")
@@ -207,7 +215,9 @@ if pendentes:
     _render_grid(pendentes)
 
 if concluidos:
+    st.write(f"**Resumo:** {len(pendentes)} pendente(s) • {len(concluidos)} concluído(s).")
     st.divider()
+    
     st.markdown("**Concluídos**")
     _render_grid(concluidos)
 

@@ -1,10 +1,10 @@
-# pages/7_Imprimir.py
+# pages/5_Imprimir.py
 import re
 import sqlite3
 from io import BytesIO
 import html as html_lib
-
 from datetime import datetime  # (mantido caso queira mostrar datas no futuro)
+
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -15,8 +15,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 
-
-
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # ← sidebar custom
 
 # ----------------------------------------------------------------------
 # Config
@@ -24,6 +23,12 @@ from reportlab.pdfbase import pdfmetrics
 DB_PATH = "dados.db"
 st.set_page_config(page_title="Imprimir", page_icon="🖨️", layout="wide")
 
+# Sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
+
+# --------------------------
 
 # ----------------------------------------------------------------------
 # Constantes

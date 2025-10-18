@@ -3,9 +3,15 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 
-st.set_page_config(page_title="Criar Lote", page_icon="🆕", layout="wide")
-st.title("🆕 Criar Lote")
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # << sidebar custom
 
+st.set_page_config(page_title="Criar Lote", page_icon="🆕", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
+st.title("🆕 Criar Lote")
 # ---------------- utilitários ----------------
 DB_PATH = "dados.db"
 

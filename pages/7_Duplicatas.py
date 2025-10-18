@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 import streamlit as st
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
 
 try:
     import pandas as pd
@@ -13,14 +14,17 @@ except ImportError:
 
 # ------------------ Config da página ------------------
 st.set_page_config(page_title="Duplicatas", page_icon="🧩", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
+st.title("🧩 Duplicatas")
+st.caption("Grupos de animais com o mesmo **Lacre**.")
 st.page_link("Inicio.py", label="⬅️ Voltar para Início", icon="🏠", use_container_width=True)
 
 APP_DIR = Path(__file__).resolve().parent.parent if "__file__" in globals() else Path(".")
 DB_PATH = APP_DIR / "dados.db"
-
-st.title("🧩 Duplicatas")
-st.caption("Grupos de animais com o mesmo **Lacre**.")
-
 # ------------------ Helpers ------------------
 def _connect() -> sqlite3.Connection:
     return sqlite3.connect(DB_PATH)

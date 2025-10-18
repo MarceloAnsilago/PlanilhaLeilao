@@ -4,9 +4,15 @@ from pathlib import Path
 from datetime import datetime
 import sqlite3
 import streamlit as st
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav
 
 # ------------------ Config ------------------
 st.set_page_config(page_title="Início", page_icon="🏠", layout="wide")
+
+# Sidebar customizada com ícones
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
 st.title("🏠 Início")
 st.sidebar.success("Selecione uma página acima.")
 
@@ -290,7 +296,7 @@ with t2:
 with t3:
     st.markdown(f"""
         <div class="card">
-          <h3>👥 Animais totais</h3>
+          <h3>🐄🐄 Animais totais</h3>
           <div class="value">{int(total_individuos)}</div>
           <div class="sub">Soma de <span class="k">Total Animais</span></div>
         </div>""", unsafe_allow_html=True)

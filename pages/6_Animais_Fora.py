@@ -1,4 +1,4 @@
-# pages/8_Animais_Fora.py
+# pages/6_Animais_Fora.py
 from __future__ import annotations
 from pathlib import Path
 import sqlite3
@@ -6,8 +6,16 @@ import csv
 import io
 import streamlit as st
 
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
+
 st.set_page_config(page_title="Animais Fora", page_icon="🐄", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
 st.title("🐄 Animais Fora")
+
 st.caption("Registros da tabela `animais` que não possuem vínculo em `lote_itens`.")
 
 APP_DIR = Path(__file__).resolve().parent.parent if "__file__" in globals() else Path(".")

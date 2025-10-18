@@ -3,8 +3,14 @@ import pandas as pd
 import sqlite3
 from io import BytesIO
 
+from ui_nav import hide_default_sidebar_nav, render_sidebar_nav  # sidebar custom
 
 st.set_page_config(page_title="Dados", page_icon="🗂️", layout="wide")
+
+# sidebar com ícones (esconde a nativa)
+hide_default_sidebar_nav()
+render_sidebar_nav()
+
 st.title("🗂️ Dados")
 
 st.markdown("Carregue um arquivo com os dados do leilão (HTML, Excel, LibreOffice etc.).")
