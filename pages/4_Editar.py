@@ -83,7 +83,7 @@ if "txt_rowid" not in st.session_state:
 txt_val = st.text_input(
     "ID do registro (prioritário)",
     key="txt_rowid",
-    placeholder="Digite o rowid ou deixe vazio para usar o seletor abaixo"
+    placeholder="Digite os caracteres ou deixe vazio para usar o seletor abaixo"
 )
 
 # -------------------- Selectbox (secundário) --------------------
