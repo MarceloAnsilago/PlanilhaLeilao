@@ -1,4 +1,4 @@
-# main.py  (página inicial)
+﻿# main.py  (página inicial)
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
@@ -9,8 +9,6 @@ import streamlit as st
 st.set_page_config(page_title="Início", page_icon="🏠", layout="wide")
 st.title("🏠 Início")
 st.sidebar.success("Selecione uma página acima.")
-
-
 
 APP_DIR = Path(__file__).resolve().parent
 DB_PATH = APP_DIR / "dados.db"
@@ -62,7 +60,6 @@ ultimo_backup = None
 with _connect() as conn:
     # 1) Duplicados / animais
     if _table_exists(conn, "animais"):
-        # nomes de colunas existentes (para garantir robustez)
         cols_animais = set(_colnames(conn, "animais"))
 
         duplicados_distintos = _get_single_value(conn, """
@@ -114,7 +111,7 @@ with _connect() as conn:
         if "Total F" in cols_animais:
             qtd_f = _get_single_value(conn, 'SELECT COALESCE(SUM("Total F"),0) FROM animais')
 
-        # ---- Individuos: somar "Total Animais" (se existir) ----
+        # ---- Indivíduos: somar "Total Animais" (se existir) ----
         if "Total Animais" in cols_animais:
             total_individuos = _get_single_value(conn, 'SELECT COALESCE(SUM("Total Animais"),0) FROM animais')
 
@@ -190,7 +187,7 @@ with c2:
 with c3:
     st.markdown(f"""
         <div class="card">
-          <h3>📝 Itens em lotes</h3>
+          <h3>📋 Itens em lotes</h3>
           <div class="value">{int(itens_em_lotes)}</div>
           <div class="sub">Soma de registros em <span class="k">lote_itens</span></div>
         </div>""", unsafe_allow_html=True)
@@ -224,7 +221,7 @@ with r2:
 with r3:
     st.markdown(f"""
         <div class="card">
-          <h3>🔗 Animais em lotes</h3>
+          <h3>📦→🐄 Animais em lotes</h3>
           <div class="value">{int(animais_em_lote)}</div>
           <div class="sub">Com vínculo em <span class="k">lote_itens</span></div>
         </div>""", unsafe_allow_html=True)
@@ -233,7 +230,7 @@ with r4:
     pct = (animais_em_lote / total_animais * 100) if total_animais else 0
     st.markdown(f"""
         <div class="card">
-          <h3>📊 Cobertura</h3>
+          <h3>📈 Cobertura</h3>
           <div class="value">{pct:.0f}%</div>
           <div class="sub">% de animais já associados</div>
         </div>""", unsafe_allow_html=True)
@@ -273,7 +270,7 @@ with s4:
         </div>""", unsafe_allow_html=True)
 
 # ---- Quarta linha ----
-t1, t2, t3, t4 = st.columns(4)
+t1, t2, t3, _ = st.columns(4)
 with t1:
     st.markdown(f"""
         <div class="card">
@@ -298,10 +295,7 @@ with t3:
           <div class="sub">Soma de <span class="k">Total Animais</span></div>
         </div>""", unsafe_allow_html=True)
 
-# (t4 livre para futuro uso)
-
-# deixa os botões mais “encorpados”
-# estilo opcional (mantém)
+# ---- Atalhos (botões) ----
 st.markdown("""
 <style>
 div.stButton > button { width: 100%; padding: .75rem 1rem; border-radius: 10px; }
@@ -313,13 +307,12 @@ def go(label: str, page_path: str, icon: str = "", primary: bool = False):
     if st.button(btn, use_container_width=True, type=("primary" if primary else "secondary")):
         st.switch_page(page_path)
 
-# ---- ATALHOS (ícone no label, caminho continua igual) ----
-go("Lotes",         "pages/1_✅_Lotes.py",        icon="✅", primary=True)
-go("Criar Lote",    "pages/2_🆕_Criar_Lote.py",  icon="🆕")
-go("Planilha",      "pages/3_📑_Planilha.py",    icon="📑")
-go("Editar",        "pages/4_✏️_Editar.py",     icon="✏️")
-go("Imprimir",      "pages/5_🖨️_Imprimir.py",   icon="🖨️")
-go("Animais Fora",  "pages/6_🐄_Animais_Fora.py",icon="🐄")
-go("Duplicatas",    "pages/7_🧩_Duplicatas.py",  icon="🧩")
-go("Dados",         "pages/8_🗂️_Dados.py",      icon="🗂️")
-# ----------------------------------------------------------------------
+go("Lotes",         "pages/1_Lotes.py",        icon="✅", primary=True)
+go("Criar Lote",    "pages/2_Criar_Lote.py",   icon="🆕")
+go("Planilha",      "pages/3_Planilha.py",     icon="📑")
+go("Editar",        "pages/4_Editar.py",       icon="✏️")
+go("Imprimir",      "pages/5_Imprimir.py",     icon="🖨️")
+go("Animais Fora",  "pages/6_Animais_Fora.py", icon="🐄")
+go("Duplicatas",    "pages/7_Duplicatas.py",   icon="🧩")
+go("Dados",         "pages/8_Dados.py",        icon="🗂️")
+go("Backup",        "pages/9_Backup.py",       icon="💾")

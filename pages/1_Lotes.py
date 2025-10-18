@@ -201,7 +201,7 @@ f"""
                         except Exception:
                             st.experimental_set_query_params(lote=numero)
                         st.session_state["lote_para_imprimir"] = int(numero)
-                        st.switch_page("pages/7_Imprimir.py")
+                        st.switch_page("pages/5_Imprimir.py")
 
 if pendentes:
     _render_grid(pendentes)

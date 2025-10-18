@@ -1,4 +1,5 @@
-# pages/7_🧩_Duplicatas.py
+﻿
+# pages/7_ðŸ§©_Duplicatas.py
 from __future__ import annotations
 
 import io
@@ -11,19 +12,19 @@ import streamlit as st
 try:
     import pandas as pd
 except ImportError:
-    pd = None  # evita crash se pandas não estiver instalado
+    pd = None  # evita crash se pandas nÃ£o estiver instalado
 
-# ------------------ Config da página ------------------
-st.set_page_config(page_title="🧩 Duplicatas", page_icon="🧩", layout="wide")
+# ------------------ Config da pÃ¡gina ------------------
+st.set_page_config(page_title="ðŸ§© Duplicatas", page_icon="ðŸ§©", layout="wide")
 
-# Navegação (topo)
-st.page_link("🏠_Início.py", label="⬅️ Voltar para Início", icon="🏠", use_container_width=True)
+# NavegaÃ§Ã£o (topo)
+st.page_link("ðŸ _InÃ­cio.py", label="â¬…ï¸ Voltar para InÃ­cio", icon="ðŸ ", use_container_width=True)
 
 APP_DIR = Path(__file__).resolve().parent.parent if "__file__" in globals() else Path(".")
 DB_PATH = APP_DIR / "dados.db"
 
-st.set_page_config(page_title="Duplicatas", page_icon="🧩", layout="wide")
-st.title("🧩 Duplicatas")
+st.set_page_config(page_title="Duplicatas", page_icon="ðŸ§©", layout="wide")
+st.title("ðŸ§© Duplicatas")
 # ------------------ Helpers ------------------
 def _connect() -> sqlite3.Connection:
     return sqlite3.connect(DB_PATH)
@@ -46,7 +47,7 @@ def _df_from_rows(rows: list[tuple], headers: list[str]):
 # ------------------ Consultas iniciais ------------------
 with _connect() as conn:
     if not _table_exists(conn, "animais"):
-        st.error("Tabela `animais` não encontrada no banco de dados.")
+        st.error("Tabela `animais` nÃ£o encontrada no banco de dados.")
         st.stop()
 
     cols = _columns(conn, "animais")
@@ -54,23 +55,23 @@ with _connect() as conn:
     # Campos preferenciais (aparece primeiro se existir)
     preferidos = [
         "rowid",
-        "N.º Série",
+        "N.Âº SÃ©rie",
         "Lacre",
-        "Proprietário Origem",
+        "ProprietÃ¡rio Origem",
         "Idade",
         "Idade (meses)",
         "Sexo",
     ]
     mostrar = [c for c in preferidos if (c == "rowid" or c in cols)]
 
-    # completa com demais campos até um limite (para não poluir a visualização)
+    # completa com demais campos atÃ© um limite (para nÃ£o poluir a visualizaÃ§Ã£o)
     for c in cols:
         if c not in mostrar and c != "rowid":
             mostrar.append(c)
         if len(mostrar) >= 12:
             break
 
-    # Grupos duplicados por Lacre (não vazios)
+    # Grupos duplicados por Lacre (nÃ£o vazios)
     grupos: list[tuple[str, int]] = conn.execute(
         """
         SELECT Lacre, COUNT(*) AS cnt
@@ -85,7 +86,7 @@ with _connect() as conn:
 # ------------------ Filtros ------------------
 col_f1, col_f2 = st.columns([1.2, 1])
 with col_f1:
-    q = st.text_input("🔎 Buscar lacre (ou parte)", "", placeholder="ex.: 123, ABC...")
+    q = st.text_input("ðŸ”Ž Buscar lacre (ou parte)", "", placeholder="ex.: 123, ABC...")
 with col_f2:
     st.write("")  # alinhamento
     st.write("**Duplicatas encontradas:**", len(grupos))
@@ -93,18 +94,18 @@ with col_f2:
 if q:
     grupos = [g for g in grupos if q.lower() in str(g[0]).lower()]
 
-# Link prático para Backup (detecta se tem emoji no nome do arquivo)
-backup_path = "pages/5_💾_Backup.py" if Path("pages/5_💾_Backup.py").exists() else (
+# Link prÃ¡tico para Backup (detecta se tem emoji no nome do arquivo)
+backup_path = "pages/5_ðŸ’¾_Backup.py" if Path("pages/5_ðŸ’¾_Backup.py").exists() else (
     "pages/5_Backup.py" if Path("pages/5_Backup.py").exists() else None
 )
 
 if not grupos:
-    st.info("Nenhuma duplicata encontrada (ou o filtro não retornou resultados).")
+    st.info("Nenhuma duplicata encontrada (ou o filtro nÃ£o retornou resultados).")
     if backup_path:
-        st.page_link(backup_path, label="💾 Ir para Backup", icon="💾", use_container_width=True)
+        st.page_link(backup_path, label="ðŸ’¾ Ir para Backup", icon="ðŸ’¾", use_container_width=True)
     st.stop()
 
-# ------------------ Relatório geral (CSV) ------------------
+# ------------------ RelatÃ³rio geral (CSV) ------------------
 if pd is not None:
     with _connect() as conn:
         all_rows: list[tuple] = []
@@ -121,7 +122,7 @@ if pd is not None:
         if df_all is not None and not df_all.empty:
             csv_all = df_all.to_csv(index=False).encode("utf-8-sig")
             st.download_button(
-                "⬇️ Baixar CSV (todos os grupos)",
+                "â¬‡ï¸ Baixar CSV (todos os grupos)",
                 data=csv_all,
                 file_name="duplicatas_lacre.csv",
                 use_container_width=True,
@@ -133,9 +134,9 @@ st.divider()
 st.markdown("### Grupos de duplicados por **Lacre**")
 
 for lacre, cnt in grupos:
-    with st.expander(f"🔁 Lacre **{lacre}** — {cnt} registro(s)"):
+    with st.expander(f"ðŸ” Lacre **{lacre}** â€” {cnt} registro(s)"):
         with _connect() as conn:
-            # usa a lista 'mostrar' para não lotar a tabela
+            # usa a lista 'mostrar' para nÃ£o lotar a tabela
             select_cols = []
             if "rowid" in mostrar:
                 select_cols.append("rowid")
@@ -144,7 +145,7 @@ for lacre, cnt in grupos:
             sql = f'SELECT {", ".join(select_cols)} FROM animais WHERE TRIM(Lacre)=? ORDER BY rowid'
             rows = conn.execute(sql, (str(lacre),)).fetchall()
 
-        # headers “bonitos”
+        # headers â€œbonitosâ€
         headers = [c if c != '"rowid"' else "rowid" for c in select_cols]
         headers = [h.strip('"') for h in headers]
 
@@ -168,7 +169,8 @@ for lacre, cnt in grupos:
 
 st.divider()
 
-# ------------------ Rodapé / navegação ------------------
-st.page_link("🏠_Início.py", label="⬅️ Voltar para Início", icon="🏠", use_container_width=True)
+# ------------------ RodapÃ© / navegaÃ§Ã£o ------------------
+st.page_link("ðŸ _InÃ­cio.py", label="â¬…ï¸ Voltar para InÃ­cio", icon="ðŸ ", use_container_width=True)
 if backup_path:
-    st.page_link(backup_path, label="💾 Ir para Backup", icon="💾", use_container_width=True)
+    st.page_link(backup_path, label="ðŸ’¾ Ir para Backup", icon="ðŸ’¾", use_container_width=True)
+
