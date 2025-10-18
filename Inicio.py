@@ -205,7 +205,7 @@ r1, r2, r3, r4 = st.columns(4)
 with r1:
     st.markdown(f"""
         <div class="card">
-          <h3>🐄 Animais (total)</h3>
+          <h3>🧮 Número de linhas</h3>
           <div class="value">{int(total_animais)}</div>
           <div class="sub">Linhas na tabela <span class="k">animais</span></div>
         </div>""", unsafe_allow_html=True)
@@ -290,11 +290,10 @@ with t2:
 with t3:
     st.markdown(f"""
         <div class="card">
-          <h3>👥 Animais (indivíduos)</h3>
+          <h3>👥 Animais totais</h3>
           <div class="value">{int(total_individuos)}</div>
           <div class="sub">Soma de <span class="k">Total Animais</span></div>
         </div>""", unsafe_allow_html=True)
-
 # ---- Atalhos (botões) ----
 st.markdown("""
 <style>
