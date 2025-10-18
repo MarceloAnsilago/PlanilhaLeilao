@@ -28,8 +28,6 @@ hide_default_sidebar_nav()
 render_sidebar_nav()
 
 
-# --------------------------
-
 # ----------------------------------------------------------------------
 # Constantes
 # ----------------------------------------------------------------------
@@ -265,6 +263,20 @@ def truncate_text(text: str, max_width_pt: float, font_name: str = "Helvetica-Ob
     return t[:mid].rstrip() + ell
 
 # ----------------------------------------------------------------------
+# Helpers de formatação (HTML e PDF) para negrito condicional (>0)
+# ----------------------------------------------------------------------
+def _html_num_cell(val: int) -> str:
+    v = int(val) if str(val).strip() not in ("", "None") else 0
+    s = html_lib.escape(str(v))
+    return f"<b>{s}</b>" if v > 0 else s
+
+def _pdf_num_cell(val: int, style_normal) -> Paragraph | str:
+    v = int(val) if str(val).strip() not in ("", "None") else 0
+    if v > 0:
+        return Paragraph(f"<b>{v}</b>", style_normal)
+    return Paragraph(str(v), style_normal)
+
+# ----------------------------------------------------------------------
 # PDF
 # ----------------------------------------------------------------------
 def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
@@ -282,6 +294,7 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
     styles = getSampleStyleSheet()
     title = ParagraphStyle("title_center", parent=styles["Title"], alignment=1, fontSize=20, leading=24, spaceAfter=6)
     legend_title = ParagraphStyle("legend", parent=styles["Heading4"], alignment=0, fontSize=12, leading=14)
+    num_style = ParagraphStyle("num", parent=styles["Normal"], fontSize=9, alignment=1)  # centralizado
 
     story = [Paragraph(f"Lote #{lote_info['numero']}", title), Spacer(1, 6)]
 
@@ -305,10 +318,12 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
     for it in items:
         nome = it.get("proprietario", "")
         nome_trunc = truncate_text(nome, avail_prop_width, "Helvetica-Oblique", 8.0)
-        row = [it.get("serie", ""), it.get("lacre", ""), nome_trunc]
+        row = [it.get("serie", ""), it.get("lacre", ""), Paragraph(html_lib.escape(nome_trunc), ParagraphStyle("prop", parent=styles["Normal"], fontName="Helvetica-Oblique", fontSize=8, alignment=0))]
         for label, _ in FAIXAS:
-            row.append(str(it["M"].get(label, 0)))
-            row.append(str(it["F"].get(label, 0)))
+            m_val = int(it["M"].get(label, 0))
+            f_val = int(it["F"].get(label, 0))
+            row.append(_pdf_num_cell(m_val, num_style))
+            row.append(_pdf_num_cell(f_val, num_style))
         data.append(row)
 
     if len(data) == 2:
@@ -364,8 +379,14 @@ def build_pdf(lote_info: dict, items: list[dict]) -> bytes:
 
     gta_row = []
     for label, _ in FAIXAS:
-        gta_row += [str(tot_M[label]), str(tot_F[label])]
-    gta_row += [str(total_M_geral), str(total_F_geral)]
+        gta_row += [
+            _pdf_num_cell(tot_M[label], num_style),
+            _pdf_num_cell(tot_F[label], num_style),
+        ]
+    gta_row += [
+        _pdf_num_cell(total_M_geral, num_style),
+        _pdf_num_cell(total_F_geral, num_style),
+    ]
 
     num_subcols_gta = len(FAIXAS) * 2 + 2
     area_util_mm = (doc.pagesize[0] - doc.leftMargin - doc.rightMargin) / mm
@@ -463,8 +484,10 @@ if rows:
             f'<td style="{td};{small}; text-align:left">{html_lib.escape(str(it.get("proprietario","")))}</td>'
         )
         for label, _ in FAIXAS:
-            row_html += f'<td style="{td};{small}; text-align:center">{html_lib.escape(str(it["M"].get(label, 0)))}</td>'
-            row_html += f'<td style="{td};{small}; text-align:center">{html_lib.escape(str(it["F"].get(label, 0)))}</td>'
+            m_val = it["M"].get(label, 0)
+            f_val = it["F"].get(label, 0)
+            row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(m_val)}</td>'
+            row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(f_val)}</td>'
         body_rows += f"<tr>{row_html}</tr>\n"
 
     # totais
@@ -477,8 +500,8 @@ if rows:
 
     tot_cells = f'<td colspan="3" style="{td}; font-weight:700; text-align:center">Total</td>'
     for label, _ in FAIXAS:
-        tot_cells += f'<td style="{td}; font-weight:700; text-align:center">{tot_M[label]}</td>'
-        tot_cells += f'<td style="{td}; font-weight:700; text-align:center">{tot_F[label]}</td>'
+        tot_cells += f'<td style="{td}; text-align:center">{_html_num_cell(tot_M[label])}</td>'
+        tot_cells += f'<td style="{td}; text-align:center">{_html_num_cell(tot_F[label])}</td>'
 
     html_table = f"""
     <div style="overflow-x:auto">
@@ -504,10 +527,10 @@ if rows:
 
     gta_row_html = ""
     for label, _ in FAIXAS:
-        gta_row_html += f'<td style="{td};{small}; text-align:center; font-weight:700">{html_lib.escape(str(tot_M[label]))}</td>'
-        gta_row_html += f'<td style="{td};{small}; text-align:center; font-weight:700">{html_lib.escape(str(tot_F[label]))}</td>'
-    gta_row_html += f'<td style="{td};{small}; text-align:center; font-weight:700">{html_lib.escape(str(total_M_geral))}</td>'
-    gta_row_html += f'<td style="{td};{small}; text-align:center; font-weight:700">{html_lib.escape(str(total_F_geral))}</td>'
+        gta_row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(tot_M[label])}</td>'
+        gta_row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(tot_F[label])}</td>'
+    gta_row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(total_M_geral)}</td>'
+    gta_row_html += f'<td style="{td};{small}; text-align:center">{_html_num_cell(total_F_geral)}</td>'
 
     gta_html = f"""
     <div style="overflow-x:auto; margin-top:6px">
@@ -534,6 +557,7 @@ if rows:
           html,body{{margin:0;padding:0;font-family:Arial, Helvetica, sans-serif;background:transparent}}
           .table-wrap{{padding:6px 0}}
           hr{{border:0; border-top:2px solid #e5e7eb; margin:12px auto; width:82%;}}
+          td b{{font-weight:700}}
         </style>
       </head>
       <body>
