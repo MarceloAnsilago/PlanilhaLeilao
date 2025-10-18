@@ -60,4 +60,4 @@ for _, row in df.iterrows():
         st.session_state["last_rowid"] = rid           # backup
         st.query_params.clear()
         st.query_params["rowid"] = rid                 # vai pré-preencher o text_input na Editar
-        st.switch_page("pages/6_Editar.py")
+        st.switch_page("pages/4_Editar.py")

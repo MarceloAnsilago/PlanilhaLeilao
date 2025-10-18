@@ -179,20 +179,31 @@ with st.form("editar_form"):
     ok = st.form_submit_button("💾 Alterar")
 
 if ok:
+    def quote_ident(name: str) -> str:
+        # Aspas duplas para identificadores SQLite; escapa aspas internas se houver
+        return '"' + str(name).replace('"', '""') + '"'
+
     try:
+        # Converte datas p/ string
         for k, v in list(novos.items()):
             if isinstance(v, (datetime, date)):
                 novos[k] = _to_str_dt(v)
 
-        set_clause = ", ".join([f"{c} = ?" for c in novos.keys()])
-        values = list(novos.values()) + [rowid]
+        # Monta SET com colunas citadas
+        set_parts = [f"{quote_ident(c)} = ?" for c in novos.keys()]
+        set_clause = ", ".join(set_parts)
+
+        # Valores + rowid no final
+        values = list(novos.values()) + [int(rowid)]
 
         with _connect() as conn:
-            conn.execute(f"UPDATE animais SET {set_clause} WHERE rowid = ?", values)
+            sql = f'UPDATE {quote_ident("animais")} SET {set_clause} WHERE rowid = ?'
+            conn.execute(sql, values)
             conn.commit()
 
         st.success("✅ Registro atualizado com sucesso.")
         st.page_link("pages/3_Planilha.py", label="⬅️ Voltar para Planilha")
+
     except Exception as e:
         st.error("❌ Erro ao atualizar o registro.")
         st.exception(e)
