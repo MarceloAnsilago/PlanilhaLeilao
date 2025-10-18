@@ -2,7 +2,8 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 import html as html_lib
-
+import base64
+import streamlit.components.v1 as components
 # ----------------- Config -----------------
 st.set_page_config(page_title="Lote Pronto", page_icon="✅", layout="wide")
 st.title("✅ Lote Pronto")
@@ -10,6 +11,45 @@ st.caption("Clique em um card para alternar o status do lote. Pendentes aparecem
 
 DB_PATH = "dados.db"
 
+
+
+def abrir_pdf_nova_aba(pdf_bytes: bytes):
+    b64 = base64.b64encode(pdf_bytes).decode("utf-8")
+    components.html(
+        f"""
+        <script>
+        (function() {{
+          try {{
+            const b64 = "{b64}";
+            const bin = atob(b64);
+            const len = bin.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+            const blob = new Blob([bytes], {{ type: "application/pdf" }});
+            const url = URL.createObjectURL(blob);
+
+            // abre imediatamente em nova aba (mesmo clique do botão)
+            const w = window.open("", "_blank");
+            if (w) {{
+              w.location = url;
+            }} else {{
+              // fallback raro: força abertura
+              const a = document.createElement('a');
+              a.href = url;
+              a.target = "_blank";
+              a.click();
+            }}
+            // libera URL depois de um tempo
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+          }} catch (e) {{
+            console.error("Falha ao abrir PDF:", e);
+            alert("Não foi possível abrir o PDF. Faça o download.");
+          }}
+        }})();
+        </script>
+        """,
+        height=0,
+    )
 # ----------------- DB helpers -----------------
 def _connect():
     return sqlite3.connect(DB_PATH)
