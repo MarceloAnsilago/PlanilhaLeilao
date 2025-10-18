@@ -65,13 +65,28 @@ def _connect():
 
 def _ensure_schema_lotes_status():
     with _connect() as conn:
-        cols = {r[1] for r in conn.execute("PRAGMA table_info(lotes)").fetchall()}
-        if "status" not in cols:
-            conn.execute("ALTER TABLE lotes ADD COLUMN status TEXT NOT NULL DEFAULT 'pendente'")
-        if "concluido_em" not in cols:
-            conn.execute("ALTER TABLE lotes ADD COLUMN concluido_em TEXT")
-        conn.commit()
+        # Cria tabela lotes já com colunas de status
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS lotes (
+            numero INTEGER PRIMARY KEY,
+            criado_em TEXT,
+            status TEXT NOT NULL DEFAULT 'pendente',
+            concluido_em TEXT
+        )
+        """)
 
+        # Garante a tabela de itens (se você usa)
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS lote_itens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lote_numero INTEGER NOT NULL,
+            animal_rowid INTEGER NOT NULL,
+            UNIQUE(lote_numero, animal_rowid)
+        )
+        """)
+
+        conn.commit()
+        
 def _list_lotes():
     with _connect() as conn:
         rows = conn.execute("""

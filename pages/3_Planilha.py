@@ -15,7 +15,15 @@ def _connect():
     return sqlite3.connect("dados.db")
 
 with _connect() as conn:
-    df = pd.read_sql("SELECT rowid, * FROM animais", conn)
+    try:
+        df = pd.read_sql("SELECT rowid, * FROM animais", conn)
+    except Exception as e:
+        st.info("ℹ️ Ainda não há a tabela **animais** no banco (ou está vazia). Importe/insira registros para visualizar aqui.")
+        st.stop()
+
+if df.empty:
+    st.warning("⚠️ Nenhum dado encontrado na tabela **animais**.")
+    st.stop()
 
 if df.empty:
     st.warning("⚠️ Nenhum dado encontrado no banco.")

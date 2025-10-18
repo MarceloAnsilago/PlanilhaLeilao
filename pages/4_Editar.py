@@ -53,15 +53,18 @@ def _to_str_dt(v):
 
 # -------------------- Dados base para seletor --------------------
 with _connect() as conn:
-    all_rows = pd.read_sql(
-        "SELECT rowid, `N.º Série`, `Proprietário Origem` FROM animais ORDER BY rowid",
-        conn
-    )
+    try:
+        all_rows = pd.read_sql(
+            'SELECT rowid, `N.º Série`, `Proprietário Origem` FROM animais ORDER BY rowid',
+            conn
+        )
+    except Exception:
+        st.info("ℹ️ Não encontrei a tabela **animais**. Adicione dados antes de usar a edição.")
+        st.stop()
 
 if all_rows.empty:
-    st.error("❌ Não há registros no banco.")
+    st.info("ℹ️ A tabela **animais** está vazia. Insira registros para habilitar a edição.")
     st.stop()
-
 options = all_rows["rowid"].astype(int).tolist()
 
 # Pré-seleção: via URL ou fallback do session_state
